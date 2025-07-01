@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI モザイク 処理結果</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8fb;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+
+    .image-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .image-card {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 300px;
+      width: 100%;
+      transition: border 0.3s;
+    }
+
+    .image-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .image-card.checked {
+      border: 4px solid #ffcce0; /* パステルピンク */
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin: 30px 0;
+    }
+
+    .button {
+      padding: 12px 28px;
+      background-color: #1abc9c;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 16px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    .button:hover {
+      background-color: #16a085;
+    }
+
+    #imageModal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      align-items: center;
+      justify-content: center;
+    }
+
+    #imageModal img {
+      max-width: 90%;
+      max-height: 90%;
+      border: 6px solid white;
+      border-radius: 10px;
+    }
+
+    #imageModal .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      .button {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+      .image-card {
+        max-width: 90%;
+      }
+      #imageModal img {
+        max-width: 95%;
+        max-height: 80%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>AI モザイク 処理結果</h1>
+
+  <div class="buttons">
+    <button type="button" class="button" onclick="selectAll(true)">✅ 全選択</button>
+    <button type="button" class="button" onclick="selectAll(false)">❌ 全解除</button>
+  </div>
+
+  <form method="POST" action="/download_selected_zip">
+    <div class="image-container">
+      {% for img_path, filename, summary in image_filename_pairs %}
+        <div class="image-card" id="card-{{ loop.index }}">
+          <img src="{{ img_path }}" alt="{{ filename }}" onclick="openPreview('{{ img_path }}')">
+          <p>{{ filename }}</p>
+          <p style="font-size: 14px; color: #555;">{{ summary }}</p>
+          <label>
+            <input type="checkbox" name="selected_images" value="{{ img_path }}" checked onchange="toggleCardStyle(this, {{ loop.index }})">
+            この画像をダウンロード対象とする
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="buttons">
+      <a href="/" class="button">TOPに戻る</a>
+      <a href="/download_zip" class="button">全画像を一括ダウンロード</a>
+      <button type="submit" class="button">チェックした画像を一括DL</button>
+    </div>
+  </form>
+
+  <div id="imageModal" onclick="closePreview()">
+    <span class="close-btn">&times;</span>
+    <img id="modalImage" src="" alt="Preview">
+  </div>
+
+  <script>
+    function openPreview(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImage');
+      modalImg.src = src;
+      modal.style.display = 'flex';
+    }
+
+    function closePreview() {
+      document.getElementById('imageModal').style.display = 'none';
+    }
+
+    function toggleCardStyle(checkbox, index) {
+      const card = document.getElementById('card-' + index);
+      if (checkbox.checked) {
+        card.classList.add('checked');
+      } else {
+        card.classList.remove('checked');
+      }
+    }
+
+    function selectAll(flag) {
+      document.querySelectorAll("input[type=checkbox]").forEach((cb, i) => {
+        cb.checked = flag;
+        toggleCardStyle(cb, i + 1);
+      });
+    }
+
+    window.onload = () => {
+      document.querySelectorAll("input[type=checkbox]").forEach((cb, i) => {
+        if (cb.checked) {
+          toggleCardStyle(cb, i + 1);
+        }
+      });
+    };
+  </script>
+</body>
+</html>

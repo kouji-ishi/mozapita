@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI検知乳首局部隠し自動処理</title>
+
+    <style>
+
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8fb;
+            padding: 80px 20px 40px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        form {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px 20px;
+            background-color: #fff;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .upload-area:hover {
+            border-color: #1abc9c;
+            background-color: #fafafa;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            width: 100%;
+            padding: 14px;
+            background-color: #1abc9c;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            
+        }
+
+        .custom-file-upload:hover {
+            background-color: #16a085;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #777;
+            margin-top: 8px;
+        }
+
+        .process-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .process-btn:hover {
+            background-color: #16a085;
+        }
+
+        .file-count-display {
+            font-size: 18px;
+            color: #0b6174;
+            font-weight: bold;
+            margin-top: 16px;
+            padding: 10px 20px;
+            border: 2px dashed #1abc9c;
+            border-radius: 8px;
+            background-color: #f9fdfd;
+            transition: all 0.3s ease;
+            max-width: 100%;
+        }
+
+        #spinner {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #1abc9c;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ヘッダー */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            z-index: 999;
+            box-sizing: border-box;
+        }
+
+        .site-header .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .site-header .logo img {
+            height: 40px;
+            margin-right: 12px;
+        }
+
+        .site-header .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .header-space {
+            height: 70px;
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .custom-file-upload,
+            .process-btn,
+            .file-count-display {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .site-header .logo-text {
+                font-size: 16px;
+            }
+
+            .site-header .logo img {
+                height: 32px;
+            }
+
+            p {
+                font-size: 14px;
+            }
+
+            .upload-area {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header class="site-header">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo/MozaPita_logo.png') }}" alt="MozaPita">
+        <span class="logo-text">MozaPita - モザピタ</span>
+    </div>
+</header>
+
+<!-- ヘッダー分の余白 -->
+<div class="header-space"></div>
+
+<!-- メインコンテンツ -->
+<h1>AI検知乳首局部隠し自動処理</h1>
+<p>画像ファイルをアップロードすると、AI がモザイク処理を自動で行います。</p>
+
+<form method="POST" action="/upload" enctype="multipart/form-data" target="_blank" onsubmit="showSpinner()">
+    <div class="upload-area">
+        <input type="file" name="image" id="file-upload" accept="image/*" multiple required onchange="updateFileCount()">
+        <label for="file-upload" class="custom-file-upload">画像ファイルを選択</label>
+        <p class="upload-hint">または画像をここにドラッグ＆ドロップ</p>
+    </div>
+
+    <button type="submit" class="process-btn">処理開始</button>
+
+    <div class="file-count-display" id="file-count">取込件数 0件</div>
+</form>
+
+<div id="spinner">
+    <div class="loader"></div>
+</div>
+
+<script>
+    function updateFileCount() {
+        const input = document.getElementById('file-upload');
+        const count = input.files.length;
+        document.getElementById('file-count').innerText = '【取込件数】 ' + count + '件';
+    }
+
+    function showSpinner() {
+        document.getElementById('spinner').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
