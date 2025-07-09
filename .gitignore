@@ -1,0 +1,40 @@
+# Pythonキャッシュ
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 仮想環境
+.env
+.venv/
+venv/
+env/
+mosaic-env/
+
+# JupyterやIDEの設定
+.ipynb_checkpoints/
+.vscode/
+*.code-workspace
+
+# OS固有
+.DS_Store
+Thumbs.db
+
+# ログ・一時ファイル
+*.log
+*.zip
+
+# YOLOの出力（デフォルト）
+runs/
+
+# アップロード／一時処理／出力フォルダ（static以下）
+static/uploads/
+static/output/
+static/tmp_dl/
+static/download/
+
+# Flaskセッションや一時ファイル
+instance/
+*.sqlite3
+
+

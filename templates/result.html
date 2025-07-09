@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI モザイク 処理結果</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #fafafa;
+      padding: 30px;
+    }
+
+    .btn {
+      background: #10b981;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  }
+
+    .btn.danger {
+      background: #ef4444;
+    }
+
+    .emoji-group img {
+      width: 48px;
+      height: 48px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: transform 0.2s;
+    }
+
+    .emoji-group img:hover {
+      transform: scale(1.2);
+    }
+
+    /* 横並びの画像一覧 */
+    .image-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .image-card {
+      width: 240px;
+      background: white;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: 0.2s ease;
+    }
+
+    .image-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .image-card.selected {
+      border: 3px solid hotpink;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.6);
+    }
+
+    .preview-image {
+      cursor: zoom-in;
+      transition: 0.2s ease;
+    }
+
+    .preview-image.enlarged {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      max-width: 90%;
+      max-height: 90%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      cursor: zoom-out;
+    }
+
+    .actions {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>AI モザイク 処理結果</h1>
+  <p>画像枚数: {{ image_filename_pairs|length }}</p>
+
+  <div>
+    <button class="btn" onclick="selectAll(true)">✅ 全選択</button>
+    <button class="btn danger" onclick="selectAll(false)">❌ 全解除</button>
+  </div>
+
+  <p>好きな隠しマークを選んでください</p>
+  <div class="emoji-group" id="markOptions">
+    {% for i in range(1, 10) %}
+      <img src="/static/marks/mark{{ '%02d' % i }}.png" onclick="applyMark('mark{{ '%02d' % i }}.png')" alt="mark">
+    {% endfor %}
+  </div>
+
+  <div class="image-container">
+    {% for path, filename, summary in image_filename_pairs %}
+      <div class="image-card selected">
+        <img src="{{ path }}" id="img-{{ filename }}" class="preview-image">
+        <div>{{ filename }}</div>
+        <div style="font-size: 14px;">{{ summary }}</div>
+        <div>
+          <label>
+            <input type="checkbox" name="selected_images" value="{{ path }}" checked>
+            ダウンロード対象
+          </label>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="actions">
+    <form action="/" method="get">
+      <button class="btn">TOPに戻る</button>
+    </form>
+    <form method="POST" action="/download_selected_zip" id="zipForm">
+      <input type="hidden" name="selected_images" id="selectedList">
+      <button class="btn" id="downloadBtn" type="submit" disabled>チェックした画像を一括DL</button>
+    </form>
+  </div>
+
+  <script>
+    let selectedMark = "mark01.png";
+
+    function applyMark(filename) {
+      selectedMark = filename;
+      document.querySelectorAll(".image-card img").forEach(img => {
+        const fname = img.id.replace("img-", "");
+        fetch("/apply_mark", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: fname, mark: selectedMark })
+        })
+        .then(res => res.json())
+        .then(data => {
+          img.src = data.new_path + "?t=" + Date.now();
+        });
+      });
+    }
+
+    function selectAll(flag) {
+      document.querySelectorAll("input[name='selected_images']").forEach(cb => {
+        cb.checked = flag;
+        cb.dispatchEvent(new Event('change')); // ← change イベントを手動で発火させる
+  });
+
+      setTimeout(updateDownloadButtonState, 0);
+    }
+
+    document.getElementById('zipForm').addEventListener('submit', function(e) {
+      const selected = Array.from(document.querySelectorAll("input[name='selected_images']:checked"))
+                            .map(cb => cb.value);
+      document.getElementById('selectedList').value = selected;
+    });
+
+    // 拡大プレビュー
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('preview-image')) {
+        e.target.classList.toggle('enlarged');
+      }
+    });
+
+    // 初期選択済み画像をピンク枠に
+    document.querySelectorAll('.image-card input[type="checkbox"]').forEach(cb => {
+      if (cb.checked) {
+        cb.closest('.image-card').classList.add('selected');
+      }
+      cb.addEventListener('change', () => {
+        cb.closest('.image-card').classList.toggle('selected', cb.checked);
+        updateDownloadButtonState();
+      });
+    });
+
+  // ボタン活性・非活性を制御
+  function updateDownloadButtonState() {
+    const checkboxes = document.querySelectorAll('input[name="selected_images"]');
+    const zipButton = document.getElementById('downloadBtn');
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    zipButton.disabled = !anyChecked;
+  }
+
+  document.querySelectorAll("input[name='selected_images']").forEach(cb => {
+    cb.addEventListener("change", updateDownloadButtonState);
+  });
+
+  // 初期状態でもチェックしておく
+  updateDownloadButtonState();
+
+  </script>
+</body>
+</html>
