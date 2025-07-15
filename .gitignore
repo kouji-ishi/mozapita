@@ -27,14 +27,28 @@ Thumbs.db
 # YOLOの出力（デフォルト）
 runs/
 
-# アップロード／一時処理／出力フォルダ（static以下）
+# 除外（すでに書いてある）
 static/uploads/
 static/output/
 static/tmp_dl/
 static/download/
 
+# .gitkeepだけは含める
+!static/uploads/.gitkeep
+!static/output/.gitkeep
+!static/tmp_dl/.gitkeep
+!static/download/.gitkeep
+
 # Flaskセッションや一時ファイル
 instance/
 *.sqlite3
 
-
+git add weights/best.pt
+git commit -m "Add trained YOLOv8 model"
+git push origin main  # or main branch name
+git add app.py templates/ static/ requirements.txt README.md
+git add .gitignore
+git commit -m "Update .gitignore to allow .gitkeep files"
+git add -f static/uploads/.gitkeep static/output/.gitkeep static/tmp_dl/.gitkeep static/download/.gitkeep
+git commit -m "Add .gitkeep files to track empty folders"
+git push origin main
