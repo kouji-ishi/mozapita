@@ -21,14 +21,14 @@ model = YOLO(os.path.join("weights", "best.pt"))  # 必要に応じてモデル�
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, MARK_FOLDER, TMP_FOLDER, DOWNLOAD_FOLDER]:
     os.makedirs(folder, exist_ok=True)
 
-def add_mark_image(image_path, results, save_path, mark_file):
-
-    def resize_if_large(img_path, max_size=1024):
+# 1. グローバル関数として独立させる
+def resize_if_large(img_path, max_size=1024):
         with Image.open(img_path) as img:  # ← インデントを追加
             if max(img.size) > max_size:
                 img.thumbnail((max_size, max_size))
             img.save(img_path)
 
+def add_mark_image(image_path, results, save_path, mark_file):
     image = Image.open(image_path).convert("RGBA")
     mark = Image.open(os.path.join(MARK_FOLDER, mark_file)).convert("RGBA")
 
