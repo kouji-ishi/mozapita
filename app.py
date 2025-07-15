@@ -22,6 +22,12 @@ for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, MARK_FOLDER, TMP_FOLDER, DOWNLOAD_F
     os.makedirs(folder, exist_ok=True)
 
 def add_mark_image(image_path, results, save_path, mark_file):
+    def resize_if_large(img_path, max_size=1024):
+    with Image.open(img_path) as img:
+        if max(img.size) > max_size:
+            img.thumbnail((max_size, max_size))
+            img.save(img_path)
+
     image = Image.open(image_path).convert("RGBA")
     mark = Image.open(os.path.join(MARK_FOLDER, mark_file)).convert("RGBA")
 
@@ -61,7 +67,7 @@ def upload():
         filename = uid + '_' + f.filename
         save_path = os.path.join(UPLOAD_FOLDER, filename)
         f.save(save_path)
-
+        resize_if_large(save_path)  # サイズ制限追加
         results = model.predict(source=save_path, conf=0.1, save=False)
         
         summary = f"nipple:{sum(1 for b in results[0].boxes if b.cls[0] == 0)} / genitals:{sum(1 for b in results[0].boxes if b.cls[0] == 1)}"
