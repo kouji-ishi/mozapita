@@ -22,10 +22,11 @@ for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, MARK_FOLDER, TMP_FOLDER, DOWNLOAD_F
     os.makedirs(folder, exist_ok=True)
 
 def add_mark_image(image_path, results, save_path, mark_file):
+
     def resize_if_large(img_path, max_size=1024):
-    with Image.open(img_path) as img:
-        if max(img.size) > max_size:
-            img.thumbnail((max_size, max_size))
+        with Image.open(img_path) as img:  # ← インデントを追加
+            if max(img.size) > max_size:
+                img.thumbnail((max_size, max_size))
             img.save(img_path)
 
     image = Image.open(image_path).convert("RGBA")
