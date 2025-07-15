@@ -15,7 +15,7 @@ MARK_FOLDER = 'static/marks'
 TMP_FOLDER = 'static/tmp_dl'
 DOWNLOAD_FOLDER = str(Path.home() / "Downloads")
 
-model = YOLO(r"C:\Users\石渡浩二\OneDrive - Culture Entertainment Group\デスクトップ\AI開発\3_adultmosaicapp\train4\weights\best.pt")  # 必要に応じてモデルパスを変更
+model = YOLO(os.path.join("weights", "best.pt"))  # 必要に応じてモデルパスを変更
 
 # フォルダ準備
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, MARK_FOLDER, TMP_FOLDER, DOWNLOAD_FOLDER]:
